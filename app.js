@@ -64,7 +64,7 @@ async function verifyProKeyOnline(key) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        product_id: 'YOUR_WHATSAPP_PRODUCT_ID',
+        product_id: 'LvQpF7JdzwGWoK8FYmxPTA==',
         license_key: key.trim(),
       }),
     });

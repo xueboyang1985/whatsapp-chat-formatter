@@ -67,4 +67,4 @@ MIT — do whatever you want.
 
 ## 🙏 Support
 
-If you find this tool useful, consider [upgrading to PRO](https://xuebo8.gumroad.com/l/iwropv) ($9.99 one-time) to unlock unlimited exports and priority support.
+If you find this tool useful, consider [upgrading to PRO](https://xuebo8.gumroad.com/l/oaeyoa) ($9.99 one-time) to unlock unlimited exports and priority support.
