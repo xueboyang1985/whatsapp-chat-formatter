@@ -77,27 +77,30 @@ async function verifyProKeyOnline(key) {
 }
 
 async function activateProKey(key) {
-  const trimmed = key.trim();
-  if (!validateProKeyFormat(trimmed)) {
-    return { ok: false, msg: 'Invalid key format. Expected: WHATSAPP-XXXX-XXXX-XXXX-XXXX' };
+  const trimmed = key.trim().toUpperCase();
+
+  // Offline WHATSAPP-XXXX keys (demo or keygen)
+  if (trimmed.startsWith(PRO_KEY_PREFIX)) {
+    if (!validateProKeyFormat(trimmed)) {
+      return { ok: false, msg: 'Invalid key format. Expected: WHATSAPP-XXXX-XXXX-XXXX-XXXX' };
+    }
+    if (!offlineProChecksum(trimmed)) {
+      return { ok: false, msg: 'Invalid PRO key.' };
+    }
+    if (isDeviceLimitReached()) {
+      return { ok: false, msg: 'This key has reached the 3-device limit.' };
+    }
+    return activateSuccess(trimmed);
   }
 
-  // Check device limit
+  // Gumroad license key — no format restriction, verify via API
   if (isDeviceLimitReached()) {
     return { ok: false, msg: 'This key has reached the 3-device limit.' };
   }
-
-  // 1. Try online Gumroad API first (handles real purchased keys)
   const onlineOk = await verifyProKeyOnline(trimmed);
   if (onlineOk) {
     return activateSuccess(trimmed);
   }
-
-  // 2. Fallback: offline checksum (for demo key, or when Gumroad API is unreachable)
-  if (offlineProChecksum(trimmed)) {
-    return activateSuccess(trimmed);
-  }
-
   return { ok: false, msg: 'Key verification failed. Please check your key and try again.' };
 }
 
@@ -232,8 +235,15 @@ function checkProStatus() {
   const proActivated = (localStorage.getItem('wcf_pro_activated') === 'true');
   const stored = getStoredProKey();
 
-  if (proActivated && stored && validateProKeyFormat(stored)) {
-    isPro = true;
+  if (proActivated && stored) {
+    // Trust the stored key if pro_activated flag is set
+    if (stored.toUpperCase().startsWith(PRO_KEY_PREFIX)) {
+      // Offline-format key: verify checksum to validate
+      if (offlineProChecksum(stored)) isPro = true;
+    } else {
+      // Gumroad key: trust the flag (was verified online during activation)
+      isPro = true;
+    }
   } else if (stored && offlineProChecksum(stored)) {
     // Legacy: stored demo key passes checksum
     isPro = true;
@@ -457,17 +467,22 @@ document.getElementById('btn-activate').addEventListener('click', async () => {
 /* ─── Gumroad Buy Button ─────────────────────────────────────────────── */
 // Use popup window instead of relying on gumroad.js auto-intercept,
 // which doesn't work reliably (blocked in some regions, fails on hidden modal links)
+// Popup window — falls back to direct navigation if popup is blocked
 document.getElementById('btn-buy-pro').addEventListener('click', function(e) {
   e.preventDefault();
   const w = Math.min(600, window.innerWidth - 40);
   const h = Math.min(700, window.innerHeight - 40);
   const left = Math.max(0, (window.innerWidth - w) / 2);
   const top = Math.max(0, (window.innerHeight - h) / 2);
-  window.open(
+  const win = window.open(
     'https://xuebo8.gumroad.com/l/oaeyoa',
     'gumroad-checkout',
     `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,status=no`
   );
+  if (!win) {
+    // Popup blocked — navigate directly as fallback
+    window.location.href = 'https://xuebo8.gumroad.com/l/oaeyoa';
+  }
 });
 
 // Auto-check PRO on load
