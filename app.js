@@ -70,13 +70,9 @@ async function verifyProKeyOnline(key) {
       }),
     });
     const data = await r.json();
-    if (data.success && data.consumption && data.consumption.consumed_count <= 3) {
-      return true;
-    }
-    // Fallback to offline if API unreachable
-    return offlineProChecksum(key);
+    return !!(data.success && data.purchase);
   } catch {
-    return offlineProChecksum(key);
+    return false;
   }
 }
 
@@ -86,26 +82,30 @@ async function activateProKey(key) {
     return { ok: false, msg: 'Invalid key format. Expected: WHATSAPP-XXXX-XXXX-XXXX-XXXX' };
   }
 
-  // Check offline format first
-  if (!offlineProChecksum(trimmed)) {
-    return { ok: false, msg: 'Invalid PRO key.' };
-  }
-
   // Check device limit
   if (isDeviceLimitReached()) {
     return { ok: false, msg: 'This key has reached the 3-device limit.' };
   }
 
-  // Online verification
+  // 1. Try online Gumroad API first (handles real purchased keys)
   const onlineOk = await verifyProKeyOnline(trimmed);
-  if (!onlineOk) {
-    return { ok: false, msg: 'Key verification failed. Please check your key and try again.' };
+  if (onlineOk) {
+    return activateSuccess(trimmed);
   }
 
-  // Activate
-  setStoredProKey(trimmed);
+  // 2. Fallback: offline checksum (for demo key, or when Gumroad API is unreachable)
+  if (offlineProChecksum(trimmed)) {
+    return activateSuccess(trimmed);
+  }
+
+  return { ok: false, msg: 'Key verification failed. Please check your key and try again.' };
+}
+
+function activateSuccess(key) {
+  setStoredProKey(key);
   registerDevice();
   isPro = true;
+  try { localStorage.setItem('wcf_pro_activated', 'true'); } catch {}
   updateProUI();
   return { ok: true, msg: 'PRO activated! All features unlocked.' };
 }
@@ -229,10 +229,15 @@ function showResults() {
 }
 
 function checkProStatus() {
+  const proActivated = (localStorage.getItem('wcf_pro_activated') === 'true');
   const stored = getStoredProKey();
-  if (stored && offlineProChecksum(stored)) {
-    // In a full implementation, also verify online periodically
+
+  if (proActivated && stored && validateProKeyFormat(stored)) {
     isPro = true;
+  } else if (stored && offlineProChecksum(stored)) {
+    // Legacy: stored demo key passes checksum
+    isPro = true;
+    try { localStorage.setItem('wcf_pro_activated', 'true'); } catch {}
   }
   updateProUI();
 }
