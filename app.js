@@ -3,7 +3,8 @@
 /* ─── PRO Constants ──────────────────────────────────────────────── */
 const MAX_FREE_ENTRIES = 100;
 const PRO_KEY_PREFIX = 'WHATSAPP-';
-const PRO_SECRET = 'WHATSAPP-CHAT-PRO-2024'.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+// PRO_SECRET = charCode sum of "WHATSAPP-ABCD-EFGH-IJKL-MNOP" (also serves as demo key)
+const PRO_SECRET = 'WHATSAPP-ABCD-EFGH-IJKL-MNOP'.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
 
 let parsedData = null;
 let filteredEntries = [];
