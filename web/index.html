@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Chat Formatter - Export Chats to Markdown, HTML, CSV, JSON</title>
+<meta name="description" content="Format and export WhatsApp chat exports to clean Markdown, HTML, CSV, or JSON. 100% browser-based, no upload, no signup. Free for one chat export.">
+<meta name="keywords" content="WhatsApp chat export, WhatsApp to Markdown, WhatsApp to HTML, WhatsApp chat formatter, export WhatsApp chat, WhatsApp to CSV, WhatsApp to JSON, chat backup">
+<meta property="og:title" content="WhatsApp Chat Formatter - Export Chats to Markdown, HTML, CSV, JSON">
+<meta property="og:description" content="Format WhatsApp chat exports into clean Markdown, HTML, CSV, or JSON. 100% local browser tool.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://xueboyang1985.github.io/whatsapp-chat-formatter/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="WhatsApp Chat Formatter - Export Chats">
+<meta name="twitter:description" content="Format WhatsApp chat exports into Markdown, HTML, CSV, JSON. 100% local.">
+<link rel="canonical" href="https://xueboyang1985.github.io/whatsapp-chat-formatter/">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">💬</div>
+    <h1>WhatsApp Chat Formatter</h1>
+    <p class="subtitle">Turn WhatsApp chat exports into clean Markdown, HTML, CSV, or JSON — no upload needed</p>
+  </div>
+
+  <!-- Upload -->
+  <div class="card upload-card" id="upload-card">
+    <div class="upload-zone" id="drop-zone">
+      <div class="upload-icon">💬</div>
+      <p class="upload-text">Drop a <strong>WhatsApp exported chat (.txt)</strong> here</p>
+      <p class="upload-hint">or <a href="#" id="click-upload">browse your files</a></p>
+      <input type="file" id="file-input" accept=".txt" hidden>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="step-num">1</span><span>Open WhatsApp → open a chat → tap the contact/group name → <strong>Export Chat</strong></span></div>
+      <div class="step"><span class="step-num">2</span><span>Choose <strong>Without Media</strong> (or With Media for PRO) → save the .txt file</span></div>
+      <div class="step"><span class="step-num">3</span><span>Drag & drop the .txt file here, or click browse</span></div>
+      <div class="step"><span class="step-num">4</span><span>Preview, filter, and export as Markdown, HTML, CSV, or JSON — free for 100 messages</span></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card results-card" id="results-card" style="display:none;">
+    <div class="results-header">
+      <h2 id="chat-name">WhatsApp Chat</h2>
+      <p id="msg-count">0 messages</p>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div class="filter-bar" id="filter-bar">
+        <label>From:</label>
+        <input type="date" id="filter-start">
+        <label>To:</label>
+        <input type="date" id="filter-end">
+        <label>Sender:</label>
+        <select id="filter-sender"><option value="">All</option></select>
+        <button class="btn btn-export" id="btn-apply-filters">Apply</button>
+      </div>
+      <div class="sender-stats" id="sender-stats"></div>
+      <div class="results-actions">
+        <button class="btn btn-export" data-format="md">📝 Export as Markdown</button>
+        <button class="btn btn-export" data-format="html">🌐 Export as HTML</button>
+        <button class="btn btn-export" data-format="txt">📄 Export as TXT</button>
+        <button class="btn btn-export" data-format="csv">📊 Export as CSV</button>
+        <button class="btn btn-export" data-format="json">📦 Export as JSON</button>
+      </div>
+      <p class="free-hint" id="free-hint">Free exports include the first 100 messages. <a href="#" id="btn-show-pro">Upgrade to PRO</a> for unlimited messages + media ZIP support + priority support.</p>
+      <p style="margin-top:8px;"><a href="#" id="btn-new-file" style="color:#999;font-size:13px;text-decoration:none;">← Upload a different file</a></p>
+    </div>
+    <div class="entry-list" id="entry-list"></div>
+  </div>
+
+  <!-- PRO -->
+  <div class="card pro-card" id="pro-card">
+    <div class="pro-header">
+      <span class="pro-badge-large">PRO</span>
+      <span>Export unlimited messages, process ZIP exports with media, priority support — one-time payment</span>
+      <button class="btn btn-pro" id="btn-show-pro2">Learn More</button>
+    </div>
+  </div>
+
+  <!-- Sample -->
+  <div class="card example-card">
+    <p class="example-text">💬 Don't have a WhatsApp export handy? Try the demo with sample chat data</p>
+    <button class="btn btn-sample" id="load-sample">📂 Load Sample Chat</button>
+  </div>
+
+  <!-- Cross-promotion -->
+  <div class="card example-card" style="border-left:3px solid #ff9900;">
+    <p class="example-text">📖 Also check out <strong>Kindle Highlights Exporter</strong> — export your Kindle notes to Markdown, CSV, JSON</p>
+    <a href="https://xueboyang1985.github.io/kindle-exporter/" target="_blank" class="btn btn-sample" style="text-decoration:none;display:inline-block;">📖 Try Kindle Exporter →</a>
+  </div>
+  <div class="card example-card" style="border-left:3px solid #6366f1;">
+    <p class="example-text">🎬 Also check out <strong>Subtitle Converter</strong> — extract transcript text from subtitle files</p>
+    <a href="https://xueboyang1985.github.io/subtitle-converter/" target="_blank" class="btn btn-sample" style="text-decoration:none;display:inline-block;">🎬 Try Subtitle Converter →</a>
+  </div>
+
+  <div class="footer">
+    <p>100% local &bull; No upload &bull; No server &bull; Your chat never leaves your device</p>
+    <p class="footer-small">Made for people who want to keep their conversations</p>
+  </div>
+</div>
+
+<!-- PRO Modal -->
+<div class="modal-overlay" id="pro-modal" style="display:none;">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <h2>🔓 Upgrade to PRO</h2>
+    <table class="compare-table">
+      <tr><th>Feature</th><th>Free</th><th>PRO</th></tr>
+      <tr><td>Messages per export</td><td>100 messages</td><td>Unlimited</td></tr>
+      <tr><td>Export formats</td><td>Markdown, HTML, TXT, CSV, JSON</td><td>Markdown, HTML, TXT, CSV, JSON</td></tr>
+      <tr><td>ZIP export with media</td><td>—</td><td>✅ Parse WhatsApp ZIP exports</td></tr>
+      <tr><td>Date range & sender filters</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Statistics dashboard</td><td>✅</td><td>✅</td></tr>
+      <tr><td>100% local (no upload)</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Priority support</td><td>—</td><td>✅</td></tr>
+    </table>
+    <p class="pro-price">$9.99 <span class="pro-price-sub">one-time payment · 3 devices</span></p>
+    <p style="text-align:center;margin-bottom:12px;"><a href="https://xuebo8.gumroad.com/l/iwropv" target="_blank" class="btn btn-pro" style="text-decoration:none;display:inline-block;" id="btn-buy-pro">🛒 Buy a PRO Key</a></p>
+    <div class="license-row">
+      <input type="text" id="pro-key-input" placeholder="Enter PRO key (e.g. WHATSAPP-XXXX-XXXX-XXXX-XXXX)">
+      <button class="btn btn-pro" id="btn-activate">Activate</button>
+    </div>
+    <p class="pro-hint">Each key works on up to 3 devices · <a href="guide.html">User Guide & FAQ</a></p>
+  </div>
+</div>
+
+<script src="parser.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
