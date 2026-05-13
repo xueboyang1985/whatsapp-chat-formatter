@@ -449,6 +449,22 @@ document.getElementById('btn-activate').addEventListener('click', async () => {
   }
 });
 
+/* ─── Gumroad Buy Button ─────────────────────────────────────────────── */
+// Use popup window instead of relying on gumroad.js auto-intercept,
+// which doesn't work reliably (blocked in some regions, fails on hidden modal links)
+document.getElementById('btn-buy-pro').addEventListener('click', function(e) {
+  e.preventDefault();
+  const w = Math.min(600, window.innerWidth - 40);
+  const h = Math.min(700, window.innerHeight - 40);
+  const left = Math.max(0, (window.innerWidth - w) / 2);
+  const top = Math.max(0, (window.innerHeight - h) / 2);
+  window.open(
+    'https://xuebo8.gumroad.com/l/oaeyoa',
+    'gumroad-checkout',
+    `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,status=no`
+  );
+});
+
 // Auto-check PRO on load
 checkProStatus();
 
