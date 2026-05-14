@@ -469,19 +469,16 @@ document.getElementById('btn-activate').addEventListener('click', async () => {
 // which doesn't work reliably (blocked in some regions, fails on hidden modal links)
 // Popup window — falls back to direct navigation if popup is blocked
 document.getElementById('btn-buy-pro').addEventListener('click', function(e) {
-  e.preventDefault();
+  const url = this.dataset.gumroad;
+  if (!url) return;
   const w = Math.min(600, window.innerWidth - 40);
   const h = Math.min(700, window.innerHeight - 40);
   const left = Math.max(0, (window.innerWidth - w) / 2);
   const top = Math.max(0, (window.innerHeight - h) / 2);
-  const win = window.open(
-    'https://xuebo8.gumroad.com/l/oaeyoa',
-    'gumroad-checkout',
-    `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,status=no`
-  );
+  const win = window.open(url, 'gumroad-checkout',
+    `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,status=no`);
   if (!win) {
-    // Popup blocked — navigate directly as fallback
-    window.location.href = 'https://xuebo8.gumroad.com/l/oaeyoa';
+    window.location.href = url;
   }
 });
 
