@@ -1,7 +1,7 @@
 /* ─── WhatsApp Chat Formatter — Application Logic ────────────────── */
 
 /* ─── PRO Constants ──────────────────────────────────────────────── */
-const MAX_FREE_ENTRIES = 50;
+const MAX_FREE_ENTRIES = 100;
 const PRO_KEY_PREFIX = 'WHATSAPP-';
 // PRO_SECRET = charCode sum of "WHATSAPP-ABCD-EFGH-IJKL-MNOP" (also serves as demo key)
 const PRO_SECRET = 'WHATSAPP-ABCD-EFGH-IJKL-MNOP'.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -70,7 +70,18 @@ async function verifyProKeyOnline(key) {
       }),
     });
     const data = await r.json();
-    return !!(data.success && data.purchase);
+    if (data.success && data.purchase) return true;
+    // Try bundle key
+    const b = await fetch('https://api.gumroad.com/v2/licenses/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_id: 'xdlh1FHKAU0E7q3ZRuHPaw==',
+        license_key: key.trim(),
+      }),
+    });
+    const bd = await b.json();
+    return !!(bd.success && bd.purchase);
   } catch {
     return false;
   }
@@ -337,7 +348,7 @@ function renderEntries() {
   }
 
   if (showLimitNote) {
-    html += `<div class="error">🔒 Showing first ${MAX_FREE_ENTRIES} messages. <a href="#" onclick="document.getElementById('btn-show-pro').click();return false;">Upgrade to PRO</a> to see all ${filteredEntries.length} messages.</div>`;
+    html += `<div class="error">🔒 Showing first 100 messages. <a href="#" onclick="document.getElementById('btn-show-pro').click();return false;">Upgrade to PRO</a> to see all ${filteredEntries.length} messages.</div>`;
   } else if (filteredEntries.length === 0) {
     html += `<div class="error" style="color:#888;">No messages match the current filters.</div>`;
   }
