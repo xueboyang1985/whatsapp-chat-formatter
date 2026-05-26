@@ -73,7 +73,17 @@ async function verifyProKeyOnline(key) {
     if (data.success && data.consumption && data.consumption.consumed_count <= 3) {
       return true;
     }
-    // Fallback to offline if API unreachable
+    // Try bundle key
+    const br = await fetch('https://api.gumroad.com/v2/licenses/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_id: 'xdlh1FHKAU0E7q3ZRuHPaw==',
+        license_key: key.trim(),
+      }),
+    });
+    const bdata = await br.json();
+    if (bdata.success && bdata.purchase) return true;
     return offlineProChecksum(key);
   } catch {
     return offlineProChecksum(key);
@@ -452,17 +462,22 @@ document.getElementById('btn-activate').addEventListener('click', async () => {
 /* ─── Gumroad Buy Button ─────────────────────────────────────────────── */
 // Use popup window instead of relying on gumroad.js auto-intercept,
 // which doesn't work reliably (blocked in some regions, fails on hidden modal links)
-document.getElementById('btn-buy-pro').addEventListener('click', function(e) {
-  e.preventDefault();
+function openGumroad(url) {
   const w = Math.min(600, window.innerWidth - 40);
   const h = Math.min(700, window.innerHeight - 40);
   const left = Math.max(0, (window.innerWidth - w) / 2);
   const top = Math.max(0, (window.innerHeight - h) / 2);
-  window.open(
-    'https://xuebo8.gumroad.com/l/oaeyoa',
-    'gumroad-checkout',
-    `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,status=no`
-  );
+  window.open(url, 'gumroad-checkout',
+    `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,status=no`);
+}
+document.getElementById('btn-buy-pro').addEventListener('click', function(e) {
+  e.preventDefault();
+  openGumroad('https://xuebo8.gumroad.com/l/oaeyoa');
+});
+var bundleBtn = document.getElementById('btn-buy-bundle');
+if (bundleBtn) bundleBtn.addEventListener('click', function(e) {
+  e.preventDefault();
+  openGumroad('https://xuebo8.gumroad.com/l/skxcpj');
 });
 
 // Auto-check PRO on load
