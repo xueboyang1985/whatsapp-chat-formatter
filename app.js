@@ -70,9 +70,11 @@ async function verifyProKeyOnline(key) {
       }),
     });
     const data = await r.json();
-    if (data.success && data.purchase) return true;
+    if (data.success && data.consumption && data.consumption.consumed_count <= 3) {
+      return true;
+    }
     // Try bundle key
-    const b = await fetch('https://api.gumroad.com/v2/licenses/verify', {
+    const br = await fetch('https://api.gumroad.com/v2/licenses/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -80,46 +82,40 @@ async function verifyProKeyOnline(key) {
         license_key: key.trim(),
       }),
     });
-    const bd = await b.json();
-    return !!(bd.success && bd.purchase);
+    const bdata = await br.json();
+    if (bdata.success && bdata.purchase) return true;
+    return offlineProChecksum(key);
   } catch {
-    return false;
+    return offlineProChecksum(key);
   }
 }
 
 async function activateProKey(key) {
-  const trimmed = key.trim().toUpperCase();
-
-  // Offline WHATSAPP-XXXX keys (demo or keygen)
-  if (trimmed.startsWith(PRO_KEY_PREFIX)) {
-    if (!validateProKeyFormat(trimmed)) {
-      return { ok: false, msg: 'Invalid key format. Expected: WHATSAPP-XXXX-XXXX-XXXX-XXXX' };
-    }
-    if (!offlineProChecksum(trimmed)) {
-      return { ok: false, msg: 'Invalid PRO key.' };
-    }
-    if (isDeviceLimitReached()) {
-      return { ok: false, msg: 'This key has reached the 3-device limit.' };
-    }
-    return activateSuccess(trimmed);
+  const trimmed = key.trim();
+  if (!validateProKeyFormat(trimmed)) {
+    return { ok: false, msg: 'Invalid key format. Expected: WHATSAPP-XXXX-XXXX-XXXX-XXXX' };
   }
 
-  // Gumroad license key — no format restriction, verify via API
+  // Check offline format first
+  if (!offlineProChecksum(trimmed)) {
+    return { ok: false, msg: 'Invalid PRO key.' };
+  }
+
+  // Check device limit
   if (isDeviceLimitReached()) {
     return { ok: false, msg: 'This key has reached the 3-device limit.' };
   }
-  const onlineOk = await verifyProKeyOnline(trimmed);
-  if (onlineOk) {
-    return activateSuccess(trimmed);
-  }
-  return { ok: false, msg: 'Key verification failed. Please check your key and try again.' };
-}
 
-function activateSuccess(key) {
-  setStoredProKey(key);
+  // Online verification
+  const onlineOk = await verifyProKeyOnline(trimmed);
+  if (!onlineOk) {
+    return { ok: false, msg: 'Key verification failed. Please check your key and try again.' };
+  }
+
+  // Activate
+  setStoredProKey(trimmed);
   registerDevice();
   isPro = true;
-  try { localStorage.setItem('wcf_pro_activated', 'true'); } catch {}
   updateProUI();
   return { ok: true, msg: 'PRO activated! All features unlocked.' };
 }
@@ -243,22 +239,10 @@ function showResults() {
 }
 
 function checkProStatus() {
-  const proActivated = (localStorage.getItem('wcf_pro_activated') === 'true');
   const stored = getStoredProKey();
-
-  if (proActivated && stored) {
-    // Trust the stored key if pro_activated flag is set
-    if (stored.toUpperCase().startsWith(PRO_KEY_PREFIX)) {
-      // Offline-format key: verify checksum to validate
-      if (offlineProChecksum(stored)) isPro = true;
-    } else {
-      // Gumroad key: trust the flag (was verified online during activation)
-      isPro = true;
-    }
-  } else if (stored && offlineProChecksum(stored)) {
-    // Legacy: stored demo key passes checksum
+  if (stored && offlineProChecksum(stored)) {
+    // In a full implementation, also verify online periodically
     isPro = true;
-    try { localStorage.setItem('wcf_pro_activated', 'true'); } catch {}
   }
   updateProUI();
 }
@@ -478,19 +462,22 @@ document.getElementById('btn-activate').addEventListener('click', async () => {
 /* ─── Gumroad Buy Button ─────────────────────────────────────────────── */
 // Use popup window instead of relying on gumroad.js auto-intercept,
 // which doesn't work reliably (blocked in some regions, fails on hidden modal links)
-// Popup window — falls back to direct navigation if popup is blocked
-document.getElementById('btn-buy-pro').addEventListener('click', function(e) {
-  const url = this.dataset.gumroad;
-  if (!url) return;
+function openGumroad(url) {
   const w = Math.min(600, window.innerWidth - 40);
   const h = Math.min(700, window.innerHeight - 40);
   const left = Math.max(0, (window.innerWidth - w) / 2);
   const top = Math.max(0, (window.innerHeight - h) / 2);
-  const win = window.open(url, 'gumroad-checkout',
+  window.open(url, 'gumroad-checkout',
     `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,status=no`);
-  if (!win) {
-    window.location.href = url;
-  }
+}
+document.getElementById('btn-buy-pro').addEventListener('click', function(e) {
+  e.preventDefault();
+  openGumroad('https://xuebo8.gumroad.com/l/oaeyoa');
+});
+var bundleBtn = document.getElementById('btn-buy-bundle');
+if (bundleBtn) bundleBtn.addEventListener('click', function(e) {
+  e.preventDefault();
+  openGumroad('https://xuebo8.gumroad.com/l/skxcpj');
 });
 
 // Auto-check PRO on load
