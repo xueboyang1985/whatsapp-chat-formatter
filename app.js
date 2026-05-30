@@ -34,12 +34,14 @@ function setStoredProKey(key) {
 }
 
 function getDeviceId() {
-  let id = localStorage.getItem('wcf_device_id');
-  if (!id) {
-    id = 'DEV-' + Math.random().toString(36).slice(2, 10).toUpperCase();
-    localStorage.setItem('wcf_device_id', id);
-  }
-  return id;
+  try {
+    let id = localStorage.getItem('wcf_device_id');
+    if (!id) {
+      id = 'DEV-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+      localStorage.setItem('wcf_device_id', id);
+    }
+    return id;
+  } catch(e) { return 'DEV-' + Math.random().toString(36).slice(2, 10).toUpperCase(); }
 }
 
 function getRegisteredDevices() {
@@ -51,7 +53,7 @@ function registerDevice() {
   const id = getDeviceId();
   if (!devs.includes(id)) {
     devs.push(id);
-    localStorage.setItem('wcf_devices', JSON.stringify(devs));
+    try { localStorage.setItem('wcf_devices', JSON.stringify(devs)); } catch(e) {}
   }
 }
 
