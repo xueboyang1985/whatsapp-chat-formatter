@@ -9,6 +9,7 @@ const PRO_SECRET = 'WHATSAPP-ABCD-EFGH-IJKL-MNOP'.split('').reduce((a, c) => a +
 let parsedData = null;
 let filteredEntries = [];
 let isPro = false;
+let trialUses = 3;
 
 /* ─── PRO Key Validation ─────────────────────────────────────────── */
 function validateProKeyFormat(key) {
@@ -307,8 +308,9 @@ function renderSenderStats() {
 
 /* ─── Entry List ─────────────────────────────────────────────────── */
 function renderEntries() {
-  const limit = isPro ? filteredEntries.length : Math.min(filteredEntries.length, MAX_FREE_ENTRIES);
-  const showLimitNote = !isPro && filteredEntries.length > MAX_FREE_ENTRIES;
+  const effectivePro = isPro || (trialUses > 0 && (trialUses--, true));
+  const limit = effectivePro ? filteredEntries.length : Math.min(filteredEntries.length, MAX_FREE_ENTRIES);
+  const showLimitNote = !effectivePro && filteredEntries.length > MAX_FREE_ENTRIES;
 
   let html = '';
   for (let i = 0; i < limit; i++) {
@@ -385,13 +387,14 @@ document.querySelectorAll('.btn-export').forEach(btn => {
     const name = (chatNameEl.textContent || 'WhatsApp Chat').replace(/[^a-zA-Z0-9_\- ]/g, '');
     const entries = filteredEntries;
 
-    if (!isPro && entries.length > MAX_FREE_ENTRIES) {
+    const exportPro = isPro || (trialUses > 0 && (trialUses--, true));
+    if (!exportPro && entries.length > MAX_FREE_ENTRIES) {
       if (!confirm(`Free exports include only the first ${MAX_FREE_ENTRIES} messages. Upgrade to PRO for unlimited exports.\n\nExport first ${MAX_FREE_ENTRIES} messages anyway?`)) {
         return;
       }
     }
 
-    const exportEntries = isPro ? entries : entries.slice(0, MAX_FREE_ENTRIES);
+    const exportEntries = exportPro ? entries : entries.slice(0, MAX_FREE_ENTRIES);
 
     let content, ext, mime;
     switch (format) {
@@ -484,6 +487,11 @@ if (bundleBtn) bundleBtn.addEventListener('click', function(e) {
 
 // Auto-check PRO on load
 checkProStatus();
+// Show trial hint if trial available
+if (!isPro && trialUses > 0) {
+  var hint = document.getElementById('free-hint');
+  if (hint) hint.innerHTML = 'Trial PRO: ' + trialUses + ' free unlimited exports left &middot; <a onclick="document.getElementById(\'pro-modal\').style.display=\'flex\'">Get PRO</a> for permanent access.';
+}
 
 /* ─── Cross-promotion ────────────────────────────────────────────── */
 // Already in HTML as direct links
